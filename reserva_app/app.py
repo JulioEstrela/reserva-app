@@ -3,11 +3,42 @@ import csv
 
 app = Flask("Reservas")
 
-@app.route("/cadastrar-sala")
+@app.route("/cadastrar-sala", methods=["POST", "GET"])
 def cadastrar_sala():
 
-    return render_template("/cadastrar-sala.html")
+    if request.method == "POST":
 
+        with open("csvs/id.csv", "a") as idezinha:
+
+            csvwriter = csv.writer(idezinha, lineterminator='\n')
+            csvwriter.writerow("o")
+
+        with open("csvs/id.csv", "r") as idezinho:
+
+            csvreader = csv.reader(idezinho)
+            id = len(list(csvreader))  
+
+        tipo = request.form["tipo"]
+        capacidade = request.form["capacidade"]
+        descricao = request.form["descricao"]
+
+        if (tipo == '' or capacidade == '' or descricao == ''):
+
+            return render_template("/cadastrar-sala.html")
+        
+        else:
+
+            with open("./csvs/salas.csv", "a") as csvfile:
+
+                csvwriter = csv.writer(csvfile, lineterminator='\n')
+
+                csvwriter.writerow([id, tipo, capacidade, descricao, "Sim"])
+
+                return redirect(url_for("lista_salas"))
+    
+    else:
+
+        return render_template("/cadastrar-sala.html")
 
 
 @app.route("/cadastro", methods=["POST", "GET"])
@@ -34,19 +65,14 @@ def cadastro():
                     if row[0].strip() == email:
 
                         return render_template("cadastro.html")
-                
-                csvfile.close()
                     
                 with open("csvs/users.csv", "a", newline="") as csvfile:
 
                     csvwriter = csv.writer(csvfile, lineterminator='\n')
 
                     csvwriter.writerow([email, password])
-
-                    csvfile.close()
                 
-                return redirect(url_for("login"))
-            
+                return redirect(url_for("login"))          
     
     else:
         
@@ -57,15 +83,20 @@ def cadastro():
 @app.route("/listar-salas")
 def lista_salas():
 
+    roomlist = []
+
     with open("csvs/salas.csv", "r") as csvfile:
 
-        csvreader = csv.reader(csvfile)
+        for room in csvfile:
 
-        return render_template("/listar-salas.html", salas = csvreader)
+            this_room = room.strip().split(",")
+            roomlist.append(this_room)
+
+        return render_template("/listar-salas.html", salas = roomlist)
 
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
@@ -90,8 +121,6 @@ def login():
 
                             return redirect(url_for("reservas"))
                     
-                    csvfile.close()
-                    
                     return render_template("login.html")
     
     else:
@@ -100,10 +129,41 @@ def login():
 
 
 
-@app.route("/reservar-sala")
+@app.route("/reservar-sala", methods=["POST", "GET"])
 def reserva_sala():
 
-    return render_template("/reservar-sala.html")
+    if request.method == "POST":
+
+        room = request.form["room"]
+        inicio = request.form["inicio"]
+        fim = request.form["fim"]
+
+        if (room == '' or inicio == '' or fim == ''):
+
+            return render_template("/reservar-sala.html")
+
+        else:
+
+            with open("csvs/reservas.csv", "a") as file:
+
+                csvwriter = csv.writer(file, lineterminator='\n')
+
+                csvwriter.writerow([room, inicio, fim])
+
+            return redirect(url_for("detalhes_reserva"))
+    
+    else:
+
+        roomlist = []
+
+        with open("csvs/salas.csv", "r") as csvfile:
+
+            for room in csvfile:
+
+                this_room = room.strip().split(",")
+                roomlist.append(this_room)
+
+        return render_template("/reservar-sala.html", salas = roomlist)
 
 
 
@@ -121,5 +181,11 @@ def reservas():
 @app.route("/reserva/detalhe-reserva")
 def detalhes_reserva():
 
-    return render_template("reserva/detalhe-reserva.html")
+    with open("csvs/reservas.csv", "r") as file:
+
+        csvreader = csv.reader(file)
+
+        reservaslista = list(csvreader)
+
+    return render_template("reserva/detalhe-reserva.html", reservas = reservaslista[-1])
 

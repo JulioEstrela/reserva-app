@@ -30,18 +30,17 @@
                 <th scope="col">Ações</th>
               </tr>
             </thead>
-
-            {% if salas == "True" %}
+            <tbody>
 
             {% for sala in salas %}
 
-            <tbody>
+            
               <tr>
-                <td>{{ salas[0] }}</td>
-                <td>{{ salas[1] }}</td>
-                <td>{{ salas[2] }}</td>
-                <td>{{ salas[3] }}</td>
-                <td>{{ salas[4] }}</td>
+                <td>{{ sala[0] }}</td>
+                <td>{{ sala[1] }}</td>
+                <td>{{ sala[2] }}</td>
+                <td>{{ sala[3] }}</td>
+                <td>{{ sala[4] }}</td>
                 <td>
                   <form action="">
                     <button class="btn btn-sm btn-dark" type="submit" formaction="/cadastrar-sala">Editar</button>
@@ -50,12 +49,11 @@
                   </form>
                 </td>
               </tr>  
-            </tbody>
+            
 
             {% endfor %}
 
-            {% endif %}
-
+            </tbody>
           </table>
         </div>
         

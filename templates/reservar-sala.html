@@ -19,14 +19,14 @@
     </div>
     <div>
       <div class="col">
-        <form action="reserva/detalhe-reserva">
+        <form action="/reservar-sala", method="post">
           <div class="mb-3">
             <label for="sala" class="form-label">Sala</label>
-            <select class="form-select" id="sala" name="sala">
+            <select class="form-select" id="room" name="room">
               <option selected>Selecione a sala</option>
 
               {% for sala in salas %}
-              <option value=""></option>
+              <option value= {{sala[0]}} >Sala {{sala[0]}}</option>
               {% endfor %}
 
             </select>
@@ -37,7 +37,7 @@
           </div>
           <div class="mb-3">
             <label for="inicio" class="form-label">Data e Hora Fim</label>
-            <input type="datetime-local" class="form-control" name="inicio" id="inicio">
+            <input type="datetime-local" class="form-control" name="fim" id="fim">
           </div>
           <button type="submit" class="btn btn-dark">Reservar</button>
         </form>
