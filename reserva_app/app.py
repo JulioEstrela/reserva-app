@@ -33,7 +33,7 @@ def cadastrar_sala():
 
                 csvwriter = csv.writer(csvfile, lineterminator='\n')
 
-                csvwriter.writerow([id, tipo, capacidade, descricao, "Sim"])
+                csvwriter.writerow([id, tipo, descricao, capacidade, "Sim"])
 
                 return redirect(url_for("lista_salas"))
     
