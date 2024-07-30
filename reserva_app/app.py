@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import csv
 
 app = Flask("Reservas")
+app.secret_key = "senha"
 
 @app.route("/cadastrar-sala", methods=["POST", "GET"])
 def cadastrar_sala():
@@ -121,7 +122,8 @@ def login():
 
                             return redirect(url_for("reservas"))
                     
-                    return render_template("login.html")
+                flash("usuário inválido")
+                return render_template("login.html")
     
     else:
 
