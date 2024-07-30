@@ -1,5 +1,9 @@
 csvs/*
 !.keep
+touch id.csv
+touch reservas.csv
+touch salas.csv
+touch users.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
