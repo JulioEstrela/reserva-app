@@ -9,12 +9,12 @@ def cadastrar_sala():
 
     if request.method == "POST":
 
-        with open("csvs/id.csv", "a") as idezinha:
+        with open("csvs/id.csv", "a+") as idezinha:
 
             csvwriter = csv.writer(idezinha, lineterminator='\n')
             csvwriter.writerow("o")
 
-        with open("csvs/id.csv", "r") as idezinho:
+        with open("csvs/id.csv", "a+") as idezinho:
 
             csvreader = csv.reader(idezinho)
             id = len(list(csvreader))  
@@ -29,7 +29,7 @@ def cadastrar_sala():
         
         else:
 
-            with open("./csvs/salas.csv", "a") as csvfile:
+            with open("./csvs/salas.csv", "a+") as csvfile:
 
                 csvwriter = csv.writer(csvfile, lineterminator='\n')
 
@@ -57,7 +57,7 @@ def cadastro():
 
         else:
 
-            with open("csvs/users.csv", "r") as csvfile:
+            with open("csvs/users.csv", "a+") as csvfile:
 
                 csvreader = csv.reader(csvfile)
         
@@ -67,7 +67,7 @@ def cadastro():
 
                         return render_template("cadastro.html")
                     
-                with open("csvs/users.csv", "a", newline="") as csvfile:
+                with open("csvs/users.csv", "a+", newline="") as csvfile:
 
                     csvwriter = csv.writer(csvfile, lineterminator='\n')
 
@@ -86,7 +86,7 @@ def lista_salas():
 
     roomlist = []
 
-    with open("csvs/salas.csv", "r") as csvfile:
+    with open("csvs/salas.csv", "a+") as csvfile:
 
         for room in csvfile:
 
@@ -111,7 +111,7 @@ def login():
         
         else:
 
-            with open("csvs/users.csv", "r") as csvfile:
+            with open("csvs/users.csv", "a+") as csvfile:
                 csvreader = csv.reader(csvfile)
 
                 if csvreader:
@@ -146,7 +146,7 @@ def reserva_sala():
 
         else:
 
-            with open("csvs/reservas.csv", "a") as file:
+            with open("csvs/reservas.csv", "a+") as file:
 
                 csvwriter = csv.writer(file, lineterminator='\n')
 
@@ -158,7 +158,7 @@ def reserva_sala():
 
         roomlist = []
 
-        with open("csvs/salas.csv", "r") as csvfile:
+        with open("csvs/salas.csv", "a+") as csvfile:
 
             for room in csvfile:
 
@@ -172,7 +172,7 @@ def reserva_sala():
 @app.route("/reservas")
 def reservas():
 
-    with open("csvs/salas.csv", "r") as csvfile:
+    with open("csvs/salas.csv", "a+") as csvfile:
 
         csvreader = csv.reader(csvfile)
 
@@ -183,7 +183,7 @@ def reservas():
 @app.route("/reserva/detalhe-reserva")
 def detalhes_reserva():
 
-    with open("csvs/reservas.csv", "r") as file:
+    with open("csvs/reservas.csv", "a+") as file:
 
         csvreader = csv.reader(file)
 
