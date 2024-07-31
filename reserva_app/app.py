@@ -52,12 +52,13 @@ def cadastro():
         password = request.form["password"]
 
         if (name == '' or email == '' or password == ''):
-
+            flash("credenciais em branco")
             return render_template("cadastro.html")
 
         else:
 
             if(_is_email_registered(email)):
+                flash("email já cadastrado")
                 return render_template("cadastro.html")
                     
             with open("csvs/users.csv", "a", newline="") as csvfile:
@@ -99,7 +100,7 @@ def login():
         password = request.form["password"]
 
         if (email == '' or password == ''):
-
+            flash("credenciais em branco")
             return render_template("login.html")
         
         else:
