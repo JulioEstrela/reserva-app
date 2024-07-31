@@ -57,21 +57,14 @@ def cadastro():
 
         else:
 
-            with open("csvs/users.csv", "a+") as csvfile:
-
-                csvreader = csv.reader(csvfile)
-        
-                for row in csvreader:
-
-                    if row[0].strip() == email:
-
-                        return render_template("cadastro.html")
+            if(_is_email_registered(email)):
+                return render_template("cadastro.html")
                     
-                with open("csvs/users.csv", "a+", newline="") as csvfile:
+            with open("csvs/users.csv", "a", newline="") as csvfile:
 
-                    csvwriter = csv.writer(csvfile, lineterminator='\n')
+                csvwriter = csv.writer(csvfile, lineterminator='\n')
 
-                    csvwriter.writerow([email, password])
+                csvwriter.writerow([email, password])
                 
                 return redirect(url_for("login"))          
     
@@ -110,20 +103,12 @@ def login():
             return render_template("login.html")
         
         else:
-
-            with open("csvs/users.csv", "a+") as csvfile:
-                csvreader = csv.reader(csvfile)
-
-                if csvreader:
-
-                    for row in csvreader:
-
-                        if row[0].strip() == email and row[1].strip() == password:
-
-                            return redirect(url_for("reservas"))
+            if(_user_exists(email, password)):
+                return redirect(url_for("reservas"))
                     
-                flash("usuário inválido")
-                return render_template("login.html")
+            flash("usuário inválido")
+            return render_template("login.html")
+
     
     else:
 
@@ -190,4 +175,31 @@ def detalhes_reserva():
         reservaslista = list(csvreader)
 
     return render_template("reserva/detalhe-reserva.html", reservas = reservaslista[-1])
+
+
+def _read_or_create_csv(filepath: str):
+    try:
+        with open(f"{filepath}", "r") as csvfile:
+            return list(csv.reader(csvfile))
+    except FileNotFoundError:
+        with open(f"{filepath}", "w+") as csvfile:
+            return []
+    
+def _is_email_registered(email: str) -> bool:
+    csvreader = _read_or_create_csv("csvs/users.csv")
+        
+    for row in csvreader:
+        if row[0].strip() == email:
+            return True
+
+    return False
+
+def _user_exists(email: str, password: str) -> bool:
+    csvreader = _read_or_create_csv("csvs/users.csv")
+
+    for row in csvreader:
+        if row[0].strip() == email and row[1].strip() == password:
+            return True
+
+    return False
 
