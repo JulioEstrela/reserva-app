@@ -1,8 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import csv
+import mysql.connector
 
 app = Flask("Reservas")
 app.secret_key = "senha"
+
+def conexao_abrir():
+
+    return mysql.connector.connect(host="", user="", password="", database="")
+
+def conexao_fechar(con):
+    con.close
+
+with app.app_context():
+
+    db = conexao_abrir()
+    mycursor = db.cursor()
+    mycursor.execute("DROP TABLE IF EXISTS Reserva")
+    mycursor.execute("DROP TABLE IF EXISTS Sala")
+    mycursor.execute("DROP TABLE IF EXISTS Usuario")
+    mycursor.execute("CREATE TABLE Usuario (usuario_id int PRIMARY KEY AUTO_INCREMENT,usuario_nome varchar(255),usuario_email varchar(255),usuario_senha varchar(255));")
+    mycursor.execute("CREATE TABLE Sala (sala_id int PRIMARY KEY AUTO_INCREMENT,sala_tipo varchar(255),sala_capacidade int,sala_desc varchar(255));")
+    mycursor.execute("CREATE TABLE Reserva (reserva_id int PRIMARY KEY AUTO_INCREMENT,reserva_horario_inicio datetime,reserva_horario_fim datetime,reserva_usuario_id int,reserva_sala_id int,FOREIGN KEY(reserva_usuario_id) REFERENCES Usuario(usuario_id),FOREIGN KEY(reserva_sala_id) REFERENCES Sala(sala_id));")
+    conexao_fechar(db)
 
 @app.route("/cadastrar-sala", methods=["POST", "GET"])
 def cadastrar_sala():
@@ -52,28 +72,28 @@ def cadastro():
         password = request.form["password"]
 
         if (name == '' or email == '' or password == ''):
-
+            flash("credenciais em branco")
             return render_template("cadastro.html")
 
         else:
 
-            with open("csvs/users.csv", "a+") as csvfile:
+            db = conexao_abrir()
+            mycursor = db.cursor()
+            mycursor.execute("select usuario_email from usuario")
+            emails = mycursor.fetchall()
 
-                csvreader = csv.reader(csvfile)
-        
-                for row in csvreader:
+            for e in emails:
+                if(email in e):
+                    flash("email já cadastrado")
+                    conexao_fechar(db)
+                    return render_template("cadastro.html")
 
-                    if row[0].strip() == email:
+            mycursor.execute("INSERT INTO Usuario (usuario_nome, usuario_email, usuario_senha) VALUES (%s, %s, %s)", (name, email, password))
+            db.commit()
+            mycursor.close()
+            conexao_fechar(db)
 
-                        return render_template("cadastro.html")
-                    
-                with open("csvs/users.csv", "a+", newline="") as csvfile:
-
-                    csvwriter = csv.writer(csvfile, lineterminator='\n')
-
-                    csvwriter.writerow([email, password])
-                
-                return redirect(url_for("login"))          
+            return redirect(url_for("login"))        
     
     else:
         
@@ -106,30 +126,29 @@ def login():
         password = request.form["password"]
 
         if (email == '' or password == ''):
-
+            flash("credenciais em branco")
             return render_template("login.html")
         
         else:
 
-            with open("csvs/users.csv", "a+") as csvfile:
-                csvreader = csv.reader(csvfile)
+            db = conexao_abrir()
+            mycursor = db.cursor()
+            mycursor.execute("SELECT usuario_email, usuario_senha FROM Usuario")
+            dados = mycursor.fetchall()
 
-                if csvreader:
+            for tuplas in dados:
 
-                    for row in csvreader:
+                if tuplas[0] == email and tuplas[1] == password:
 
-                        if row[0].strip() == email and row[1].strip() == password:
-
-                            return redirect(url_for("reservas"))
+                    return redirect(url_for("reservas"))
                     
-                flash("usuário inválido")
-                return render_template("login.html")
+            flash("usuário inválido")
+            return render_template("login.html")
     
     else:
 
         return render_template("login.html")
-
-
+    
 
 @app.route("/reservar-sala", methods=["POST", "GET"])
 def reserva_sala():
@@ -190,4 +209,3 @@ def detalhes_reserva():
         reservaslista = list(csvreader)
 
     return render_template("reserva/detalhe-reserva.html", reservas = reservaslista[-1])
-
