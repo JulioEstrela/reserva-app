@@ -5,12 +5,24 @@ import mysql.connector
 app = Flask("Reservas")
 app.secret_key = "senha"
 
-def conexao_abrir(host, usuario, senha, banco):
+def conexao_abrir():
 
-    return mysql.connector.connect(host=host, user=usuario, password=senha, database=banco)
+    return mysql.connector.connect(host="", user="", password="", database="")
 
 def conexao_fechar(con):
     con.close
+
+with app.app_context():
+
+    db = conexao_abrir()
+    mycursor = db.cursor()
+    mycursor.execute("DROP TABLE IF EXISTS Reserva")
+    mycursor.execute("DROP TABLE IF EXISTS Sala")
+    mycursor.execute("DROP TABLE IF EXISTS Usuario")
+    mycursor.execute("CREATE TABLE Usuario (usuario_id int PRIMARY KEY AUTO_INCREMENT,usuario_nome varchar(255),usuario_email varchar(255),usuario_senha varchar(255));")
+    mycursor.execute("CREATE TABLE Sala (sala_id int PRIMARY KEY AUTO_INCREMENT,sala_tipo varchar(255),sala_capacidade int,sala_desc varchar(255));")
+    mycursor.execute("CREATE TABLE Reserva (reserva_id int PRIMARY KEY AUTO_INCREMENT,reserva_horario_inicio datetime,reserva_horario_fim datetime,reserva_usuario_id int,reserva_sala_id int,FOREIGN KEY(reserva_usuario_id) REFERENCES Usuario(usuario_id),FOREIGN KEY(reserva_sala_id) REFERENCES Sala(sala_id));")
+    conexao_fechar(db)
 
 @app.route("/cadastrar-sala", methods=["POST", "GET"])
 def cadastrar_sala():
@@ -65,17 +77,23 @@ def cadastro():
 
         else:
 
-            if(_is_email_registered(email)):
-                flash("email já cadastrado")
-                return render_template("cadastro.html")
-                    
-            with open("csvs/users.csv", "a", newline="") as csvfile:
+            db = conexao_abrir()
+            mycursor = db.cursor()
+            mycursor.execute("select usuario_email from usuario")
+            emails = mycursor.fetchall()
 
-                csvwriter = csv.writer(csvfile, lineterminator='\n')
+            for e in emails:
+                if(email in e):
+                    flash("email já cadastrado")
+                    conexao_fechar(db)
+                    return render_template("cadastro.html")
 
-                csvwriter.writerow([email, password])
-                
-                return redirect(url_for("login"))          
+            mycursor.execute("INSERT INTO Usuario (usuario_nome, usuario_email, usuario_senha) VALUES (%s, %s, %s)", (name, email, password))
+            db.commit()
+            mycursor.close()
+            conexao_fechar(db)
+
+            return redirect(url_for("login"))        
     
     else:
         
@@ -112,18 +130,25 @@ def login():
             return render_template("login.html")
         
         else:
-            if(_user_exists(email, password)):
-                return redirect(url_for("reservas"))
+
+            db = conexao_abrir()
+            mycursor = db.cursor()
+            mycursor.execute("SELECT usuario_email, usuario_senha FROM Usuario")
+            dados = mycursor.fetchall()
+
+            for tuplas in dados:
+
+                if tuplas[0] == email and tuplas[1] == password:
+
+                    return redirect(url_for("reservas"))
                     
             flash("usuário inválido")
             return render_template("login.html")
-
     
     else:
 
         return render_template("login.html")
-
-
+    
 
 @app.route("/reservar-sala", methods=["POST", "GET"])
 def reserva_sala():
@@ -184,31 +209,3 @@ def detalhes_reserva():
         reservaslista = list(csvreader)
 
     return render_template("reserva/detalhe-reserva.html", reservas = reservaslista[-1])
-
-
-def _read_or_create_csv(filepath: str):
-    try:
-        with open(f"{filepath}", "r") as csvfile:
-            return list(csv.reader(csvfile))
-    except FileNotFoundError:
-        with open(f"{filepath}", "w+") as csvfile:
-            return []
-    
-def _is_email_registered(email: str) -> bool:
-    csvreader = _read_or_create_csv("csvs/users.csv")
-        
-    for row in csvreader:
-        if row[0].strip() == email:
-            return True
-
-    return False
-
-def _user_exists(email: str, password: str) -> bool:
-    csvreader = _read_or_create_csv("csvs/users.csv")
-
-    for row in csvreader:
-        if row[0].strip() == email and row[1].strip() == password:
-            return True
-
-    return False
-
