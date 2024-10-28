@@ -1,8 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import csv
+import mysql.connector
 
 app = Flask("Reservas")
 app.secret_key = "senha"
+
+def conexao_abrir(host, usuario, senha, banco):
+
+    return mysql.connector.connect(host=host, user=usuario, password=senha, database=banco)
+
+def conexao_fechar(con):
+    con.close
 
 @app.route("/cadastrar-sala", methods=["POST", "GET"])
 def cadastrar_sala():
