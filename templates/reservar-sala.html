@@ -26,7 +26,7 @@
               <option selected>Selecione a sala</option>
 
               {% for sala in salas %}
-              <option value= {{sala[0]}} >Sala {{sala[0]}}</option>
+              <option value= {{sala[0]}} >{{sala[1]}} - ID: {{sala[0]}}</option>
               {% endfor %}
 
             </select>
